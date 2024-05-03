@@ -517,10 +517,10 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "lexico.l"
+#line 1 "miniC.l"
 /*lexico.1*/
 /* DEFINICION DE MARCOS Y CODIGO C LITERAL y se predeclaran las funciones*/
-#line 5 "lexico.l"
+#line 5 "miniC.l"
     #include "sintactico.tab.h"
     #include <stdio.h>
     #include <math.h> 
@@ -750,10 +750,10 @@ YY_DECL
 		}
 
 	{
-#line 25 "lexico.l"
+#line 25 "miniC.l"
 
 
-#line 28 "lexico.l"
+#line 28 "miniC.l"
  /*aqui se ponen las expresiones regulares de los tokens, siempre con un espacio en blanco
  para poder ignorar los espacios en blanco lo que se hace es una ER para que las pueda encontrar todas
  y como queremos ignorarlos no retornamos nada, PRINT lo ponemos arriba del todo para que no se confunda con los 
@@ -829,48 +829,48 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 34 "lexico.l"
+#line 34 "miniC.l"
 { yylval.cadena = strdup(yytext); 
                             return STR; }   /*esto lo que quiere decir es "" y luego todo lo que haya sin que haya ninguna " suelta*/
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 36 "lexico.l"
+#line 36 "miniC.l"
 { return PRIN;  }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 37 "lexico.l"
+#line 37 "miniC.l"
 { return VAR;   }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 38 "lexico.l"
+#line 38 "miniC.l"
 { return IF;    }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 39 "lexico.l"
+#line 39 "miniC.l"
 { return ELSE;  }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 40 "lexico.l"
+#line 40 "miniC.l"
 { return READ;  }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 41 "lexico.l"
+#line 41 "miniC.l"
 { return WHILE; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 42 "lexico.l"
+#line 42 "miniC.l"
 { return CONST; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 43 "lexico.l"
+#line 43 "miniC.l"
 { if(yyleng <= 32){
                             yylval.cadena = strdup(yytext);
                             return ID;
@@ -885,32 +885,32 @@ YY_RULE_SETUP
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 54 "lexico.l"
+#line 54 "miniC.l"
 { return SUMA; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 55 "lexico.l"
+#line 55 "miniC.l"
 { return REST; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 56 "lexico.l"
+#line 56 "miniC.l"
 { return MUL; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 57 "lexico.l"
+#line 57 "miniC.l"
 { return DIVI; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 58 "lexico.l"
+#line 58 "miniC.l"
 { return IGUAL; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 59 "lexico.l"
+#line 59 "miniC.l"
 { long l = atol(yytext);
                         if(l <= pow(2,31)){
                           yylval.cadena = strdup(yytext);
@@ -922,81 +922,81 @@ YY_RULE_SETUP
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 67 "lexico.l"
+#line 67 "miniC.l"
 { return PC; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 68 "lexico.l"
+#line 68 "miniC.l"
 { return COMA; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 69 "lexico.l"
+#line 69 "miniC.l"
 { return PARI; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 70 "lexico.l"
+#line 70 "miniC.l"
 { return PARD; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 71 "lexico.l"
+#line 71 "miniC.l"
 { return LLAI; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 72 "lexico.l"
+#line 72 "miniC.l"
 { return LLAD; }
 	YY_BREAK
 case 22:
 /* rule 22 can match eol */
 YY_RULE_SETUP
-#line 73 "lexico.l"
+#line 73 "miniC.l"
 { }   
 	YY_BREAK
 /*para comentarios*/
 case 23:
 YY_RULE_SETUP
-#line 75 "lexico.l"
+#line 75 "miniC.l"
 { } 
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 76 "lexico.l"
+#line 76 "miniC.l"
 { BEGIN(comentario); }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 77 "lexico.l"
+#line 77 "miniC.l"
 { BEGIN(INITIAL); }
 	YY_BREAK
 case 26:
 /* rule 26 can match eol */
 YY_RULE_SETUP
-#line 78 "lexico.l"
+#line 78 "miniC.l"
 { }
 	YY_BREAK
 /*el punto sirve para cacturas de errores felx no aumenta la linea de yylineno lo tenemos que hacer nosotros, 
  tambien podemos poner una funcion y ponerla abajo, lo cambiamos por E para que salga en una sola linea */
 case 27:
 YY_RULE_SETUP
-#line 81 "lexico.l"
+#line 81 "miniC.l"
 { printf("ERROR en línea %d: %s\n", yylineno, yytext);
                     errores++;
                      }  
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 84 "lexico.l"
+#line 84 "miniC.l"
 {printf("ERROR en línea %d: %s\n", yylineno, yytext);
                     errores++;
                      }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 88 "lexico.l"
+#line 88 "miniC.l"
 ECHO;
 	YY_BREAK
 #line 1003 "lex.yy.c"
@@ -2017,7 +2017,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 88 "lexico.l"
+#line 88 "miniC.l"
 
 
  /*aqui va el programa principal yylex es la que genera flex y la pone en lex.yy.c es una funcion que 

@@ -18,6 +18,5 @@ int main (int argc, char *argv[]){
     yyin=fin; 
 
     int res = yyparse();
-    printf("Resultado yyparse: %d\n",res); 
     fclose(fin); 
 }
