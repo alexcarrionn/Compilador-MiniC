@@ -33,12 +33,14 @@ escape \\\"|\\\\|\\[ntr]
 ["]([^"\n\\]|{escape})*["] { yylval.cadena = strdup(yytext); 
                             return STR; }   /*esto lo que quiere decir es "" y luego todo lo que haya sin que haya ninguna " suelta*/
 "print"              { return PRIN;  }
+"do"                 { return DO;    }
 "var"                { return VAR;   }
 "if"                 { return IF;    }
 "else"               { return ELSE;  }
 "read"               { return READ;  }
 "while"              { return WHILE; }
 "const"              { return CONST; }
+"for"                { return FOR; }
 {L}({L}|{D})*        { if(yyleng <= 32){
                             yylval.cadena = strdup(yytext);
                             return ID;
@@ -69,6 +71,15 @@ escape \\\"|\\\\|\\[ntr]
 ")"                  { return PARD; }
 "{"                  { return LLAI; }
 "}"                  { return LLAD; }
+
+"=="                 { return IGUALIGUAL; }
+"<"                  { return MENOR; }
+">"                  { return MAYOR; }
+"<="                 { return MENORIGUAL; }
+">="                 { return MAYORIGUAL; }
+"!="                 { return DISTINTO; }
+
+
 [ \t\r\n]+           { }   
   /*para comentarios*/
 "//".*               { } 

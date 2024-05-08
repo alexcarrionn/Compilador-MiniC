@@ -1,5 +1,5 @@
 miniC : main.c lex.yy.c sintactico.tab.c listaSimbolos.c listaCodigo.c
-	gcc main.c lex.yy.c sintactico.tab.c listaSimbolos.c listaCodigo.c -lfl -o miniC
+	gcc -g main.c lex.yy.c sintactico.tab.c listaSimbolos.c listaCodigo.c -lfl -o miniC
 
 #para poder llamar a BISON 
 sintactico.tab.h sintactico.tab.c : sintactico.y 

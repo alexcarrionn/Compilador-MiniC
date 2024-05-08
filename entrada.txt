@@ -1,9 +1,0 @@
-prueba() {
-  //Declaraciones
-  var a = 0, b;
-  a = 1+b;
-  print("Hola mundo!!!! "); 
-  if(a) print ("a no cero\n"); 
-  else 
-        print ("no"); 
-}

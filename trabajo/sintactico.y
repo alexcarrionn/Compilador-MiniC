@@ -74,12 +74,22 @@
 %token PC ";"
 %token <cadena>STR "string"
 %token IGUAL "="
+%token FOR "for"
+%token DO "do"
 
+
+%token MENOR "<"
+%token MAYOR ">"
+%token MENORIGUAL "<="
+%token MAYORIGUAL ">="
+%token IGUALIGUAL "=="
+%token DISTINTO "!="
 
 /*Tipo de datos de los no terminales*/
-%type <codigo> expression statement statement_list
+%type <codigo> expression statement statement_list assignment
 %type <codigo> print_item print_list read_list
 %type <codigo> identifier identifier_list declarations
+%type <codigo> expr_rel
 
 
 %expect 1  //sirve porque el if / else es ambiguo
@@ -100,14 +110,14 @@ Aumenta precedencia en líneas sucesivas
 program :                                                    {  l = creaLS(); 
                                                                 inicializaReg();
                                                              }
-            ID  "(" ")" "{" declarations statement_list "}"  {  if (analisis_ok){
+            ID  "(" ")" "{" declarations statement_list "}"  {  if (analisis_ok()){
                                                                 imprimeLs();
                                                                 concatenaLC($6, $7); 
                                                                 imprimirLC($6);
                                                                 liberaLC($7);
                                                                 liberaLC($6);  } 
                                                                 liberaLS(l);
-                                                             }              //ENSEÑARLO AL PROFE
+                                                             }              
 declarations : declarations VAR {t = VARIABLE; } identifier_list PC         {if(analisis_ok()){
                                                                                 $$ = $1; 
                                                                                 concatenaLC($$, $4); 
@@ -147,28 +157,33 @@ identifier  : ID                                           {insertarID($1,t,0);
                                                                     liberarReg(oper.res); 
                                                                 }}
             ;
-statement_list  : statement_list statement                 { if(analisis_ok){
+statement_list  : statement_list statement                 { if(analisis_ok()){
                                                                 $$ = $1; 
                                                                 concatenaLC($$, $2); 
                                                             }
                                                             }
-                | %empty                                   {if(analisis_ok)
+                | %empty                                   {if(analisis_ok())
                                                                 $$ = creaLC(); }
                 ;
-statement   : ID  "=" expression PC                          {buscarId($1, 1);
-                                                                //pruebas
-                                                                if(analisis_ok()){
-                                                                    $$ = $3; 
-                                                                    Operacion oper; 
-                                                                    oper.op = "sw"; 
-                                                                    oper.res = recuperaResLC($3); 
-                                                                    oper.arg1 = concatena("_", $1);
-                                                                    oper.arg2 = NULL;
-                                                                    insertaLC($$, finalLC($$), oper);
-                                                                    liberarReg(oper.res); 
-                                                                }}
+
+assignment : ID  "=" expression                      {buscarId($1, 1);
+                                                    //pruebas
+                                                    if(analisis_ok()){
+                                                        $$ = $3;
+                                                        Operacion oper;
+                                                        oper.op = "sw";
+                                                        oper.res = recuperaResLC($3);
+                                                        oper.arg1 = concatena("_", $1);
+                                                        oper.arg2 = NULL;
+                                                        insertaLC($$, finalLC($$), oper);
+                                                        liberarReg(oper.res);
+                                                    }}
+        ;
+statement   : assignment PC                          { if(analisis_ok())
+                                                          $$ = $1;
+                                                     }
             | "{" statement_list "}"                         {$$= $2;}
-            | IF "(" expression ")" statement ELSE statement { //ENSEÑASERLO AL PROFE
+            | IF "(" expr_rel ")" statement ELSE statement { 
                                                             if(analisis_ok()){
                                                                char *etiqueta  = nuevaEtiqueta();
                                                                char *etiqueta2 = nuevaEtiqueta(); 
@@ -183,29 +198,28 @@ statement   : ID  "=" expression PC                          {buscarId($1, 1);
                                                                //sentecia del if 
                                                                concatenaLC($$, $5); 
                                                                liberaLC($5);
-                                                               oper.op = "etiq"; //para poner que es una etiqueta
-                                                               oper.res = etiqueta; 
-                                                               oper.arg1 = NULL; 
-                                                               oper.arg2 = NULL;
-                                                               insertaLC($$, finalLC($$), oper);  
+                                                                oper.op = "j";
+                                                                oper.res = etiqueta2;
+                                                                oper.arg1 = oper.arg2 = NULL;
+                                                                insertaLC($$, finalLC($$), oper);  
                                                                 //sentencia del else
                                                                 oper.op = "etiq";
-                                                                oper.res = etiqueta2;
+                                                                oper.res = etiqueta;
                                                                 oper.arg1 = NULL;
                                                                 oper.arg2 = NULL;
                                                                 insertaLC($$, finalLC($$), oper);
                                                                 concatenaLC($$, $7);
                                                                 liberaLC($7);
-                                                                /*oper.op = "etiq";
+                                                                oper.op = "etiq";
                                                                 oper.res = etiqueta2;
                                                                 oper.arg1 = NULL;
                                                                 oper.arg2 = NULL;
-                                                                insertaLC($$, finalLC($$), oper);*/
+                                                                insertaLC($$, finalLC($$), oper);
                                                                 
                                                                }
                                                                 }
                                                                 
-            | IF "(" expression ")" statement                { if(analisis_ok()){
+            | IF "(" expr_rel ")" statement                { if(analisis_ok()){
                                                                char *etiqueta  = nuevaEtiqueta();
                                                                $$ = $3; 
                                                                Operacion oper; 
@@ -226,16 +240,16 @@ statement   : ID  "=" expression PC                          {buscarId($1, 1);
                                                                }
                                                                 }
                                                                 //ENSEÑASERLO AL PROFE
-            | WHILE "(" expression ")" statement             {if(analisis_ok()){
+            | WHILE "(" expr_rel ")" statement             {if(analisis_ok()){
                                                                 char *etiqueta = nuevaEtiqueta(); 
                                                                 char *etiqueta2 = nuevaEtiqueta(); 
-                                                                $$ = $3; 
                                                                 Operacion oper; 
                                                                 oper.op = "etiq"; 
                                                                 oper.res = etiqueta; 
                                                                 oper.arg1 = NULL; 
-                                                                oper.arg2 = NULL; 
-                                                                insertaLC($$, finalLC($$), oper); 
+                                                                oper.arg2 = NULL;
+                                                                $$ = $3; 
+                                                                insertaLC($$, inicioLC($$), oper); 
                                                                 oper.op = "beqz"; 
                                                                 oper.res = recuperaResLC($3); 
                                                                 oper.arg1 = etiqueta2; 
@@ -254,28 +268,156 @@ statement   : ID  "=" expression PC                          {buscarId($1, 1);
                                                                 insertaLC($$, finalLC($$), oper); 
                                                             }    
                                                             }
-            | PRIN "(" print_list ")" PC                      { $$ = $3; }
-            | READ "(" read_list ")"                         { $$ = $3; }
-            /*|FOR "(" ID "=" NUM ":" NUM ")"    {}*/
-            | error PC                                          {/*por hacer*/}
+            | PRIN "(" print_list ")" PC                        { if(analisis_ok()){$$ = $3;} }
+            | READ "(" read_list ")" PC                           { if(analisis_ok()){$$ = $3;} }
+            | DO "{" statement_list "}" WHILE "("expr_rel")" PC { 
+                                                                   if (analisis_ok()) {
+                                                                    $$=$3; 
+                                                                    char *etiquetaInicio = nuevaEtiqueta();
+                                                                    char *etiquetaFin = nuevaEtiqueta();
+
+                                                                    // Insertar etiqueta de inicio del bucle
+                                                                    Operacion oper;
+                                                                    oper.op = "etiq";
+                                                                    oper.res = etiquetaInicio;
+                                                                    oper.arg1 = NULL;
+                                                                    oper.arg2 = NULL;
+                                                                    insertaLC($$, inicioLC($$), oper);
+                                                                    // Insertar condición de salida
+                                                                    oper.op = "beqz";
+                                                                    oper.res = recuperaResLC($7); // Condición
+                                                                    oper.arg1 = etiquetaFin; // Etiqueta de fin del bucle
+                                                                    oper.arg2 = NULL;
+                                                                    concatenaLC($$, $7);
+                                                                    insertaLC($$, finalLC($$), oper);
+                                                                    liberarReg(oper.res);
+                                                                    // Volver al inicio del bucle
+                                                                    oper.op = "j";
+                                                                    oper.res = etiquetaInicio; // Etiqueta de inicio del bucle
+                                                                    oper.arg1 = oper.arg2 = NULL;
+                                                                    insertaLC($$, finalLC($$), oper);
+                                                                    // Insertar etiqueta de fin del bucle
+                                                                    oper.op = "etiq";
+                                                                    oper.res = etiquetaFin;
+                                                                    oper.arg1 = oper.arg2 = NULL;
+                                                                    insertaLC($$, finalLC($$), oper);
+                                                                    }
+                                                                    }
+| FOR "(" assignment ";" expr_rel ";" assignment ")" "{" statement_list "}" {
+    if (analisis_ok()) {
+       $$ = creaLC();
+        char *indice = obtenerReg();
+        concatenaLC($$, $3);  // Código de la inicialización
+        // Etiqueta de inicio del bucle
+        char *etiquetaInicio = nuevaEtiqueta();
+        char *etiquetaFin = nuevaEtiqueta();
+        Operacion oper;
+        oper.op = "etiq";
+        oper.res = etiquetaInicio;
+        oper.arg1 = NULL;
+        oper.arg2 = NULL;
+        insertaLC($$, finalLC($$), oper);
+        // Condición de salida
+        concatenaLC($$, $5); // Código de la condición
+        oper.op = "beqz";
+        oper.res = recuperaResLC($5); 
+        oper.arg1 = etiquetaFin; 
+        oper.arg2 = NULL;
+        insertaLC($$, finalLC($$), oper);
+        // Cuerpo del bucle
+        concatenaLC($$, $10); // Código del cuerpo del bucle
+        // Incremento
+        concatenaLC($$, $7); // Código del incremento
+        oper.op = "j";
+        oper.res = etiquetaInicio;
+        oper.arg1 = oper.arg2 = NULL;
+        insertaLC($$, finalLC($$), oper);
+        oper.op = "etiq";
+        oper.res = etiquetaFin;
+        oper.arg1 = oper.arg2 = NULL;
+        insertaLC($$, finalLC($$), oper);
+        liberarReg(indice);
+    }
+}
+
+
+
+            | error PC                                          {$$ = creaLC();
+                                                                errores++;}
             ;
 print_list : print_item                                      { $$ = $1;}
-            | print_list "," print_item                      {
+            | print_list "," print_item                      {  if (analisis_ok()) {
                                                                 $$ = $1; 
                                                                 concatenaLC($$, $3); 
-                                                                liberaLC($3); 
+                                                                liberaLC($3); }
                                                                 }
             ;
-/*
-expr_rel    : expression "<" expression {$$=$1; 
-                                            concatenaLC($$,$3); 
-                                            slt $t0, $t0, $t1;}
-            |expression ">" expression {}
-            |expression "==" expression {}
-            |expression "!=" expression {}
-            |expression "<=" expression {}
-            |expression ">=" expression  {}
-            ; 
+
+expr_rel    : expression "<" expression {   if(analisis_ok()){
+                                                                $$ = $1; concatenaLC($$,$3); 
+                                                                Operacion oper; oper.op = "slt"; 
+                                                                oper.res = recuperaResLC($1);
+                                                                oper.arg1 = oper.res;  
+                                                                oper.arg2 = recuperaResLC($3);
+                                                                insertaLC($$,finalLC($$),oper); 
+                                                                liberarReg(oper.arg2);
+                                                                liberaLC($3);
+                                                              }
+                                            }
+            |expression ">" expression { if(analisis_ok()){
+                                                             $$ = $1; concatenaLC($$,$3); 
+                                                            Operacion oper; oper.op = "sgt"; 
+                                                            oper.res = recuperaResLC($1);
+                                                            oper.arg1 = oper.res;  
+                                                            oper.arg2 = recuperaResLC($3);
+                                                            insertaLC($$,finalLC($$),oper); 
+                                                            liberarReg(oper.arg2);
+                                                            liberaLC($3);}
+                                        }
+            |expression "==" expression {if(analisis_ok()){
+                                            $$ = $1; concatenaLC($$,$3); 
+                                            Operacion oper; oper.op = "seq"; 
+                                            oper.res = recuperaResLC($1);
+                                            oper.arg1 = oper.res;  
+                                            oper.arg2 = recuperaResLC($3);
+                                            insertaLC($$,finalLC($$),oper); 
+                                            liberarReg(oper.arg2);
+                                            liberaLC($3);}
+                                        }
+            |expression "!=" expression {if(analisis_ok()){
+                                            $$ = $1; concatenaLC($$,$3); 
+                                                                Operacion oper; oper.op = "sne"; 
+                                                                oper.res = recuperaResLC($1);
+                                                                oper.arg1 = oper.res;  
+                                                                oper.arg2 = recuperaResLC($3);
+                                                                insertaLC($$,finalLC($$),oper); 
+                                                                liberarReg(oper.arg2);
+                                                                liberaLC($3);}
+                                        }
+            |expression "<=" expression {if(analisis_ok()){
+                                            $$ = $1; concatenaLC($$,$3); 
+                                                                Operacion oper; oper.op = "sle"; 
+                                                                oper.res = recuperaResLC($1);
+                                                                oper.arg1 = oper.res;  
+                                                                oper.arg2 = recuperaResLC($3);
+                                                                insertaLC($$,finalLC($$),oper); 
+                                                                liberarReg(oper.arg2);
+                                                                liberaLC($3);}
+                                        }
+            |expression ">=" expression  {if(analisis_ok()){
+                                           $$ = $1; concatenaLC($$,$3); 
+                                                                Operacion oper; oper.op = "sge"; 
+                                                                oper.res = recuperaResLC($1);
+                                                                oper.arg1 = oper.res;  
+                                                                oper.arg2 = recuperaResLC($3);
+                                                                insertaLC($$,finalLC($$),oper); 
+                                                                liberarReg(oper.arg2);
+                                                                liberaLC($3);}
+                                        }
+            | expression                                      {if(analisis_ok()){
+                                                                $$ = $1; 
+                                                            }}
+            ; /*Se puede hacer un print de los valores de los tokens
             y poner en cada uno de las expresiones que lo quieran en ves de expression*/
 
 print_item : expression                                      {
@@ -323,10 +465,48 @@ print_item : expression                                      {
                                                                     insertaLC($$,finalLC($$), oper); 
                                                                 }}
             ;
-read_list : ID                                               {buscarId($1, 1);}
-            | read_list "," ID                               {buscarId($3, 1);}
+read_list   : ID                                             {buscarId($1, 1);
+
+                                                                if(analisis_ok()){
+                                                                $$ = creaLC(); 
+                                                                Operacion oper;
+                                                                oper.op = "li";
+                                                                oper.res = "$v0"; 
+                                                                oper.arg1 = "5"; 
+                                                                oper.arg2 = NULL;
+                                                                insertaLC($$, finalLC($$), oper);
+                                                                oper.op = "syscall"; 
+                                                                oper.res = oper.arg1 = oper.arg2 = NULL; 
+                                                                insertaLC($$,finalLC($$), oper);
+                                                                oper.op = "sw"; 
+                                                                oper.res = "$v0";
+                                                                oper.arg1 = concatena("_", $1);
+                                                                oper.arg2 = NULL;
+                                                                insertaLC($$, finalLC($$), oper);
+                                                                liberarReg(oper.res); 
+                                                                }}
+            | read_list "," ID                               {buscarId($3, 1);
+                                                            if(analisis_ok()){
+                                                                $$ = $1; 
+                                                                Operacion oper;
+                                                                oper.op = "li";
+                                                                oper.res = "$v0"; 
+                                                                oper.arg1 = "5"; 
+                                                                oper.arg2 = NULL;
+                                                                insertaLC($$, finalLC($$), oper);
+                                                                oper.op = "syscall"; 
+                                                                oper.res = oper.arg1 = oper.arg2 = NULL; 
+                                                                insertaLC($$,finalLC($$), oper);
+                                                                oper.op = "sw"; 
+                                                                oper.res = "$v0";
+                                                                oper.arg1 = concatena("_", $3);
+                                                                oper.arg2 = NULL;
+                                                                insertaLC($$, finalLC($$), oper);
+                                                                liberarReg(oper.res); 
+                                                            }
+                                                            }
             ;
-expression :  expression "+" expression                       { if(analisis_ok){
+expression :  expression "+" expression                       { if(analisis_ok()){
                                                                  $$ = $1; concatenaLC($$,$3); 
                                                                 Operacion oper; oper.op = "add"; 
                                                                 oper.res = recuperaResLC($1);
@@ -336,16 +516,16 @@ expression :  expression "+" expression                       { if(analisis_ok){
                                                                 liberarReg(oper.arg2);
                                                                 liberaLC($3);}
                                                                 }
-            | expression "-" expression                      { if(analisis_ok){
+            | expression "-" expression                      { if(analisis_ok()){
                                                                  $$ = $1; concatenaLC($$,$3); 
-                                                                Operacion oper; oper.op = "resta"; 
+                                                                Operacion oper; oper.op = "sub"; 
                                                                 oper.res = recuperaResLC($1);
                                                                 oper.arg1 = oper.res;  
                                                                 oper.arg2 = recuperaResLC($3);
                                                                 insertaLC($$,finalLC($$),oper); 
                                                                 liberarReg(oper.arg2);
                                                                 liberaLC($3);}}
-            | expression "*" expression                      {if(analisis_ok){
+            | expression "*" expression                      {if(analisis_ok()){
                                                                  $$ = $1; concatenaLC($$,$3); 
                                                                 Operacion oper; oper.op = "mul"; 
                                                                 oper.res = recuperaResLC($1);
@@ -354,7 +534,7 @@ expression :  expression "+" expression                       { if(analisis_ok){
                                                                 insertaLC($$,finalLC($$),oper); 
                                                                 liberarReg(oper.arg2);
                                                                 liberaLC($3);}}
-            | expression "/" expression                      {if(analisis_ok){
+            | expression "/" expression                      {if(analisis_ok()){
                                                                  $$ = $1; concatenaLC($$,$3); 
                                                                 Operacion oper; oper.op = "div"; 
                                                                 oper.res = recuperaResLC($1);
@@ -402,7 +582,7 @@ expression :  expression "+" expression                       { if(analisis_ok){
 %%
 
 void yyerror(const char* msg){
-    printf("Error en línea %d: %s\n", yylineno, msg); 
+    fprintf(stderr,"Error en línea %d: %s\n", yylineno, msg); 
 }
  
 void insertarID(char *id, Tipo t, int v) {
@@ -503,7 +683,7 @@ void insertarSTR(char *id){
          while (p != finalLC(codigo1)) {
             oper = recuperaLC(codigo1,p);
             if(!strcmp(oper.op, "etiq")){
-                printf(" %s",oper.res);
+                printf(" %s:",oper.res);
             }else{
             printf("\t%s",oper.op);
             if (oper.res) printf(" %s",oper.res);
@@ -520,6 +700,6 @@ void insertarSTR(char *id){
 
     char *nuevaEtiqueta() {
         char *aux;
-        asprintf(&aux,"$l%d:",contador_etiq++);
+        asprintf(&aux,"$l%d",contador_etiq++);
         return aux;
     }
